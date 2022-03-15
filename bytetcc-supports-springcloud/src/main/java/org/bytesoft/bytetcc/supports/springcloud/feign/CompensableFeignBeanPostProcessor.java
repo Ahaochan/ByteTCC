@@ -72,11 +72,13 @@ public class CompensableFeignBeanPostProcessor implements BeanPostProcessor, Ini
 
 		InvocationHandler handler = Proxy.getInvocationHandler(object);
 
+		// 1. 只处理feign.ReflectiveFeign$FeignInvocationHandler的实例
 		if (targetSource == null //
 				&& StringUtils.equals(FEIGN_CLAZZ_NAME, handler.getClass().getName()) == false) {
 			return bean;
 		}
 
+		// 2. 对FeignInvocationHandler再次进行动态代理, 代理实现类是CompensableFeignHandler
 		Object proxied = this.createProxiedObject(object);
 		if (targetSource == null) {
 			return proxied;
@@ -98,8 +100,10 @@ public class CompensableFeignBeanPostProcessor implements BeanPostProcessor, Ini
 	}
 
 	private Object createProxiedObject(Object origin) {
+		// 获取FeignInvocationHandler动态代理
 		InvocationHandler handler = Proxy.getInvocationHandler(origin);
 
+		// 用装饰器模式包装一下, 返回一个新的动态代理实现类CompensableFeignHandler
 		CompensableFeignHandler feignHandler = new CompensableFeignHandler();
 		feignHandler.setDelegate(handler);
 		feignHandler.setStatefully(this.statefully);

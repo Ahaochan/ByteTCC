@@ -90,11 +90,13 @@ public class CompensableHystrixBeanPostProcessor implements BeanPostProcessor, I
 		} // end-if (org.springframework.aop.framework.Advised.class.isInstance(bean))
 
 		InvocationHandler handler = Proxy.getInvocationHandler(object);
+		// 1. 只处理feign.hystrix.HystrixInvocationHandler的实例
 		if (targetSource == null //
 				&& StringUtils.equals(HYSTRIX_CLAZZ_NAME, handler.getClass().getName()) == false) {
 			return bean;
 		}
 
+		// 2. 对HystrixInvocationHandler再次进行动态代理, 代理实现类是CompensableHystrixFeignHandler
 		Object proxied = this.createProxiedObject(object);
 		if (targetSource == null) {
 			return proxied;
@@ -117,8 +119,10 @@ public class CompensableHystrixBeanPostProcessor implements BeanPostProcessor, I
 
 	@SuppressWarnings("unchecked")
 	private Object createProxiedObject(Object origin) {
+		// 获取HystrixInvocationHandler动态代理
 		InvocationHandler handler = Proxy.getInvocationHandler(origin);
 
+		// 用装饰器模式包装一下, 返回一个新的动态代理实现类CompensableHystrixFeignHandler
 		final CompensableHystrixFeignHandler feignHandler = new CompensableHystrixFeignHandler();
 		feignHandler.setDelegate(handler);
 

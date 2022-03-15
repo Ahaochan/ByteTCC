@@ -75,6 +75,7 @@ import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+// 加载配置文件
 @PropertySource(value = "bytetcc:loadbalancer.config", factory = CompensablePropertySourceFactory.class)
 @ImportResource({ "classpath:bytetcc-disable-tx-advice.xml", "classpath:bytetcc-supports-springcloud-secondary.xml" })
 @EnableAspectJAutoProxy(proxyTargetClass = true)
@@ -124,9 +125,11 @@ public class SpringCloudSecondaryConfiguration implements TransactionManagementC
 	}
 
 	public void afterPropertiesSet() throws Exception {
+		// 从Spring配置环境变量里读取, 如果不指定的话, 会报NPE
 		String host = CommonUtils.getInetAddress();
 		String name = this.environment.getProperty("spring.application.name");
 		String port = this.environment.getProperty("server.port");
+		// 对当前实例生成唯一身份标识identifier
 		this.identifier = String.format("%s:%s:%s", host, name, port);
 	}
 
@@ -156,6 +159,7 @@ public class SpringCloudSecondaryConfiguration implements TransactionManagementC
 	@org.springframework.context.annotation.Bean
 	@ConditionalOnProperty(name = "feign.hystrix.enabled", havingValue = "false", matchIfMissing = true)
 	public CompensableFeignBeanPostProcessor feignPostProcessor() {
+		// 针对feign.hystrix.HystrixInvocationHandler的拦截
 		CompensableFeignBeanPostProcessor feignPostProcessor = new CompensableFeignBeanPostProcessor();
 		feignPostProcessor.setStatefully(true);
 		return feignPostProcessor;
@@ -165,6 +169,7 @@ public class SpringCloudSecondaryConfiguration implements TransactionManagementC
 	@ConditionalOnProperty(name = "feign.hystrix.enabled")
 	@ConditionalOnClass(feign.hystrix.HystrixFeign.class)
 	public CompensableHystrixBeanPostProcessor hystrixPostProcessor() {
+		// 针对HystrixInvocationHandler的拦截
 		CompensableHystrixBeanPostProcessor hystrixPostProcessor = new CompensableHystrixBeanPostProcessor();
 		hystrixPostProcessor.setStatefully(true);
 		return hystrixPostProcessor;
