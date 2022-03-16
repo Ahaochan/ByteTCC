@@ -46,6 +46,7 @@ public class CompensableFeignContract implements feign.Contract, InitializingBea
 	public void invokeAfterPropertiesSet() throws Exception {
 		feign.Contract feignContract = null;
 
+		// 获取所有feign.Contract的实例Bean, 找到唯一一个不是CompensableFeignContract的feign.Contract实例Bean
 		String[] beanNameArray = this.applicationContext.getBeanNamesForType(feign.Contract.class);
 		for (int i = 0; beanNameArray != null && i < beanNameArray.length; i++) {
 			String beanName = beanNameArray[i];
@@ -63,14 +64,17 @@ public class CompensableFeignContract implements feign.Contract, InitializingBea
 			feignContract = new SpringMvcContract();
 		} // end-if (feignContract == null)
 
+		// 设置为delegate, 如果不存在就用默认的SpringMvcContract
 		this.delegate = feignContract;
 	}
 
 	public List<MethodMetadata> parseAndValidatateMetadata(Class<?> targetType) {
+		// 包装parseAndValidatateMetadata方法
 		List<MethodMetadata> metas = this.delegate.parseAndValidatateMetadata(targetType);
 		for (int i = 0; metas != null && i < metas.size(); i++) {
 			MethodMetadata meta = metas.get(i);
 			if (meta.returnType() == void.class) {
+				// 修改MethodMetadata的返回类型, 由void改为String, 没懂为什么
 				meta.returnType(String.class);
 			}
 		}

@@ -33,6 +33,7 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.core.env.Environment;
 
+// 初始化实现了CompensableEndpointAware接口的Bean
 public class SpringCloudEndpointPostProcessor
 		implements InitializingBean, BeanFactoryPostProcessor, BeanPostProcessor, EnvironmentAware {
 	static final Logger logger = LoggerFactory.getLogger(SpringCloudEndpointPostProcessor.class);
@@ -57,6 +58,7 @@ public class SpringCloudEndpointPostProcessor
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
 		ClassLoader cl = Thread.currentThread().getContextClassLoader();
 
+		// 1. 找到所有实现了CompensableEndpointAware接口的Bean
 		List<BeanDefinition> beanDefList = new ArrayList<BeanDefinition>();
 		String[] beanNameArray = beanFactory.getBeanDefinitionNames();
 		for (int i = 0; i < beanNameArray.length; i++) {
@@ -77,8 +79,10 @@ public class SpringCloudEndpointPostProcessor
 			}
 		}
 
+		// 2. 如果没有初始化, 就初始化Endpoint
 		this.initializeEndpointIfNecessary();
 
+		// 3. 对实现了CompensableEndpointAware接口的Bean, 注入endpoint属性, 值为this.identifier
 		for (int i = 0; i < beanDefList.size(); i++) {
 			BeanDefinition beanDef = beanDefList.get(i);
 			MutablePropertyValues mpv = beanDef.getPropertyValues();
@@ -89,6 +93,7 @@ public class SpringCloudEndpointPostProcessor
 
 	private void injectEndpointIfNecessary(Object bean) {
 		if (CompensableEndpointAware.class.isInstance(bean)) {
+			// 初始化实现了CompensableEndpointAware接口的Bean, 将唯一标识identifier注入进去
 			CompensableEndpointAware aware = (CompensableEndpointAware) bean;
 			if (StringUtils.isBlank(aware.getEndpoint())) {
 				initializeEndpointIfNecessary();
@@ -100,8 +105,10 @@ public class SpringCloudEndpointPostProcessor
 	public void initializeEndpointIfNecessary() {
 		if (StringUtils.isBlank(this.identifier)) {
 			String host = CommonUtils.getInetAddress();
+			// 从Spring配置环境变量里读取, 如果不指定的话, 会报NPE
 			String name = this.environment.getProperty("spring.application.name");
 			String port = this.environment.getProperty("server.port");
+			// 对当前实例生成唯一身份标识identifier
 			this.identifier = String.format("%s:%s:%s", host, name, port);
 		}
 	}

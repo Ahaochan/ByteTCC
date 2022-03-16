@@ -14,6 +14,7 @@
 	<bean class="org.bytesoft.bytetcc.supports.spring.CompensableBeanFactoryAutoInjector" />
 	<bean class="org.bytesoft.bytetcc.supports.spring.CompensableContextAutoInjector" />
 	<bean class="org.bytesoft.bytetcc.supports.spring.TransactionAdviceOrderStraightener" />
+	<!-- 校验@Compensable注解 -->
 	<bean class="org.bytesoft.bytetcc.supports.spring.CompensableAnnotationConfigValidator" />
 
 	<bean class="org.bytesoft.bytetcc.supports.resource.LocalXADataSourcePostProcessor" />

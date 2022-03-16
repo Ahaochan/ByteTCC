@@ -44,6 +44,7 @@ public class CompensableBeanFactoryAutoInjector
 		while (iterator != null && iterator.hasNext()) {
 			Map.Entry<String, CompensableBeanFactoryAware> entry = iterator.next();
 			CompensableBeanFactoryAware bean = entry.getValue();
+			// 如果实现了CompensableBeanFactoryAware接口, 就注入CompensableBeanFactory
 			this.initializeCompensableBeanFactoryIfNecessary(bean);
 		}
 	}
@@ -54,6 +55,7 @@ public class CompensableBeanFactoryAutoInjector
 
 	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
 		if (CompensableBeanFactoryAware.class.isInstance(bean)) {
+			// 如果实现了CompensableBeanFactoryAware接口, 就注入CompensableBeanFactory
 			this.initializeCompensableBeanFactoryIfNecessary((CompensableBeanFactoryAware) bean);
 		} // end-if (CompensableBeanFactoryAware.class.isInstance(bean))
 
@@ -62,6 +64,7 @@ public class CompensableBeanFactoryAutoInjector
 
 	private void initializeCompensableBeanFactoryIfNecessary(CompensableBeanFactoryAware aware) {
 		if (aware.getBeanFactory() == null) {
+			// 从Spring上下文中获取CompensableBeanFactory这个Bean, 注入进去
 			CompensableBeanFactory beanFactory = //
 					this.applicationContext.getBean(CompensableBeanFactory.class);
 			aware.setBeanFactory(beanFactory);

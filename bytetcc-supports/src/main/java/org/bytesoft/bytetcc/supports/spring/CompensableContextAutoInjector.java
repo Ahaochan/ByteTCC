@@ -27,10 +27,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 
+// 初始化实现了CompensableContextAware接口的Bean
 public class CompensableContextAutoInjector implements CompensableBeanFactoryAware, BeanPostProcessor {
 	static final Logger logger = LoggerFactory.getLogger(CompensableContextAutoInjector.class);
 
 	private final Set<CompensableContextAware> awares = new HashSet<CompensableContextAware>();
+	// 由CompensableBeanFactoryAutoInjector注入进来的CompensableBeanFactory
 	private CompensableBeanFactory beanFactory;
 
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
@@ -60,6 +62,8 @@ public class CompensableContextAutoInjector implements CompensableBeanFactoryAwa
 	private synchronized void afterBeanFactoryInitialized() {
 		for (Iterator<CompensableContextAware> itr = this.awares.iterator(); itr.hasNext();) {
 			CompensableContextAware aware = itr.next();
+			// 由CompensableBeanFactoryAutoInjector注入进来的CompensableBeanFactory
+			// 去初始化实现了CompensableContextAware接口的Bean, 将CompensableContext注入进去
 			aware.setCompensableContext(this.beanFactory.getCompensableContext());
 			itr.remove();
 		} // end-for (Iterator<CompensableContextAware> itr = this.awares.iterator(); itr.hasNext();)
@@ -70,6 +74,7 @@ public class CompensableContextAutoInjector implements CompensableBeanFactoryAwa
 	}
 
 	public synchronized void setBeanFactory(CompensableBeanFactory beanFactory) {
+		// 由CompensableBeanFactoryAutoInjector注入进来的CompensableBeanFactory
 		this.beanFactory = beanFactory;
 		this.afterBeanFactoryInitialized();
 	}

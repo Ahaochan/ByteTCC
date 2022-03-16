@@ -35,6 +35,7 @@ public final class SpringContextRegistry implements ApplicationContextAware, Com
 	}
 
 	public static SpringContextRegistry getInstance() {
+		// 饿汉模式创建单例
 		return instance;
 	}
 
@@ -59,6 +60,7 @@ public final class SpringContextRegistry implements ApplicationContextAware, Com
 	}
 
 	public void setBeanFactory(CompensableBeanFactory tbf) {
+		// 由CompensableBeanFactoryAutoInjector注入进来的CompensableBeanFactory
 		this.compensableBeanFactory = tbf;
 	}
 

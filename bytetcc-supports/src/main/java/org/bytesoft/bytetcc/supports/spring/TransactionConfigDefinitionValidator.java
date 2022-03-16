@@ -40,6 +40,7 @@ public class TransactionConfigDefinitionValidator implements BeanFactoryPostProc
 						beanName));
 			}
 
+			// 只处理TransactionInterceptor的Bean
 			if (org.springframework.transaction.interceptor.TransactionInterceptor.class.getName().equals(beanClassName)) {
 				boolean errorExists = true;
 

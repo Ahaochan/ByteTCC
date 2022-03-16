@@ -90,6 +90,7 @@ public class SpringCloudSecondaryConfiguration implements TransactionManagementC
 	private ApplicationContext applicationContext;
 	private String identifier;
 	private Environment environment;
+	// 由CompensableBeanFactoryAutoInjector注入进来的CompensableBeanFactory
 	private CompensableBeanFactory beanFactory;
 	private transient final Set<String> transientClientSet = new HashSet<String>();
 
@@ -146,6 +147,7 @@ public class SpringCloudSecondaryConfiguration implements TransactionManagementC
 
 		SpringContextRegistry springContextRegistry = SpringContextRegistry.getInstance();
 		springContextRegistry.setApplicationContext(this.applicationContext);
+		// 由CompensableBeanFactoryAutoInjector注入进来的CompensableBeanFactory
 		springContextRegistry.setBeanFactory(this.beanFactory);
 		springContextRegistry.setTransactionManager(jtaTransactionManager);
 		return springContextRegistry.getTransactionManager();
@@ -261,6 +263,7 @@ public class SpringCloudSecondaryConfiguration implements TransactionManagementC
 			BeanDefinition beanDef = beanFactory.getBeanDefinition(beanNameArray[i]);
 			String beanClassName = beanDef.getBeanClassName();
 
+			// 只处理FeignClientFactoryBean的Bean
 			if (FEIGN_FACTORY_CLASS.equals(beanClassName) == false) {
 				continue;
 			}
@@ -326,6 +329,7 @@ public class SpringCloudSecondaryConfiguration implements TransactionManagementC
 	}
 
 	public CompensableBeanFactory getBeanFactory() {
+		// 由CompensableBeanFactoryAutoInjector注入进来的CompensableBeanFactory
 		return this.beanFactory;
 	}
 
