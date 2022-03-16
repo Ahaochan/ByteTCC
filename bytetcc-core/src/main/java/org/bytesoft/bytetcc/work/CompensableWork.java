@@ -23,6 +23,7 @@ import org.bytesoft.transaction.TransactionRecovery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+// 被org.bytesoft.transaction.adapter.ResourceAdapterImpl丢到线程池里去执行
 public class CompensableWork implements Work, CompensableBeanFactoryAware {
 	static final Logger logger = LoggerFactory.getLogger(CompensableWork.class);
 
@@ -40,6 +41,7 @@ public class CompensableWork implements Work, CompensableBeanFactoryAware {
 		TransactionRecovery compensableRecovery = this.beanFactory.getCompensableRecovery();
 		if (this.initialized == false) {
 			try {
+				// 恢复事务
 				compensableRecovery.startRecovery();
 				this.initialized = true;
 				compensableRecovery.timingRecover();
