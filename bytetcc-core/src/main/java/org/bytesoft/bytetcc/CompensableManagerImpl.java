@@ -64,7 +64,9 @@ public class CompensableManagerImpl implements CompensableManager, CompensableBe
 	public void associateThread(Transaction transaction) {
 		TransactionContext transactionContext = (TransactionContext) transaction.getTransactionContext();
 		TransactionXid transactionXid = transactionContext.getXid();
+		// 将分布式事务对象, 存入以compensableXid事务xid为Key的一个Map中
 		this.xid2txMap.put(transactionXid, (CompensableTransaction) transaction);
+		// 将分布式事务对象, 存入以当前线程为Key的一个Map中
 		this.thread2txMap.put(Thread.currentThread(), (CompensableTransaction) transaction);
 	}
 
@@ -181,14 +183,18 @@ public class CompensableManagerImpl implements CompensableManager, CompensableBe
 
 	protected void invokeBegin(TransactionContext transactionContext, boolean createFlag)
 			throws NotSupportedException, SystemException {
+		// 这里传入的TransactionContext是子事务的TransactionContext事务上下文
 		TransactionParticipant transactionCoordinator = this.beanFactory.getTransactionNativeParticipant();
 
+		// 从之前的暂存Map中, 拿到当前线程的分布式事务对象
 		CompensableTransaction compensable = this.getCompensableTransactionQuietly();
 		TransactionContext compensableContext = compensable.getTransactionContext();
 
 		TransactionXid compensableXid = compensableContext.getXid();
 		TransactionXid transactionXid = transactionContext.getXid();
 		try {
+			// bytejta的TransactionCoordinator, 传入子事务的上下文
+			// 创建出一个Transaction对象
 			Transaction transaction = transactionCoordinator.start(transactionContext, XAResource.TMNOFLAGS);
 			transaction.setTransactionalExtra(compensable);
 			compensable.setTransactionalExtra(transaction);
@@ -242,21 +248,26 @@ public class CompensableManagerImpl implements CompensableManager, CompensableBe
 		XidFactory transactionXidFactory = this.beanFactory.getTransactionXidFactory();
 		XidFactory compensableXidFactory = this.beanFactory.getCompensableXidFactory();
 
+		// 生成分布式事务xid和子事务xid
 		TransactionXid compensableXid = compensableXidFactory.createGlobalXid();
 		TransactionXid transactionXid = transactionXidFactory.createGlobalXid(compensableXid.getGlobalTransactionId());
 
+		// 创建分布式事务上下文
 		TransactionContext compensableContext = new TransactionContext();
 		compensableContext.setCoordinator(true);
 		compensableContext.setCompensable(true);
 		compensableContext.setStatefully(this.statefully);
 		compensableContext.setXid(compensableXid);
 		compensableContext.setPropagatedBy(compensableCoordinator.getIdentifier());
+		// 创建一个代表分布式事务的一个对象
 		CompensableTransactionImpl compensable = new CompensableTransactionImpl(compensableContext);
 		compensable.setBeanFactory(this.beanFactory);
 
+		// 将分布式事务对象, 存入以当前线程为Key的一个Map中, 存入以compensableXid事务xid为Key的一个Map中
 		this.associateThread(compensable);
 		logger.info("{}| compensable transaction begin!", ByteUtils.byteArrayToString(compensableXid.getGlobalTransactionId()));
 
+		// 创建子事务上下文
 		TransactionContext transactionContext = new TransactionContext();
 		transactionContext.setXid(transactionXid);
 
@@ -268,6 +279,7 @@ public class CompensableManagerImpl implements CompensableManager, CompensableBe
 			if (failure) {
 				logger.info("{}| compensable transaction failed!",
 						ByteUtils.byteArrayToString(compensableXid.getGlobalTransactionId()));
+				// 如果分布式事务开启失败, 就从之前保存的两个Map中, 移除掉这个分布式事务对象
 				this.desociateThread();
 			}
 		}

@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Stack;
 import java.util.concurrent.ConcurrentHashMap;
 
+// 为每个线程封装一个CompensableInvocation栈, 将CompensableInvocation进行入栈出栈操作
 public final class CompensableInvocationRegistry {
 	static final CompensableInvocationRegistry instance = new CompensableInvocationRegistry();
 
@@ -28,30 +29,36 @@ public final class CompensableInvocationRegistry {
 	}
 
 	public void register(CompensableInvocation invocation) {
+		// 获取当前线程的CompensableInvocation栈
 		Thread current = Thread.currentThread();
 		Stack<CompensableInvocation> stack = this.invocationMap.get(current);
 		if (stack == null) {
 			stack = new Stack<CompensableInvocation>();
 			this.invocationMap.put(current, stack);
 		}
+		// 将CompensableInvocation压入栈顶
 		stack.push(invocation);
 	}
 
 	public CompensableInvocation getCurrent() {
+		// 获取当前线程的CompensableInvocation栈
 		Thread current = Thread.currentThread();
 		Stack<CompensableInvocation> stack = this.invocationMap.get(current);
 		if (stack == null || stack.isEmpty()) {
 			return null;
 		}
+		// 获取栈顶的CompensableInvocation, 但是不弹出栈
 		return stack.peek();
 	}
 
 	public CompensableInvocation unRegister() {
+		// 获取当前线程的CompensableInvocation栈
 		Thread current = Thread.currentThread();
 		Stack<CompensableInvocation> stack = this.invocationMap.get(current);
 		if (stack == null || stack.isEmpty()) {
 			return null;
 		}
+		// 获取栈顶的CompensableInvocation, 并弹出栈
 		CompensableInvocation invocation = stack.pop();
 		if (stack.isEmpty()) {
 			this.invocationMap.remove(current);
@@ -60,6 +67,7 @@ public final class CompensableInvocationRegistry {
 	}
 
 	public static CompensableInvocationRegistry getInstance() {
+		// 饿汉单例模式
 		return instance;
 	}
 }

@@ -52,6 +52,7 @@ public class CompensableMethodInterceptor
 		implements MethodInterceptor, CompensableSynchronization, ApplicationContextAware, CompensableBeanFactoryAware {
 	static final Logger logger = LoggerFactory.getLogger(CompensableMethodInterceptor.class);
 
+	// 由CompensableBeanFactoryAutoInjector注入进来的CompensableBeanFactory
 	@javax.inject.Inject
 	private CompensableBeanFactory beanFactory;
 	private ApplicationContext applicationContext;
@@ -93,6 +94,7 @@ public class CompensableMethodInterceptor
 			return pjp.proceed();
 		}
 
+		// 这个bean就是被@Compensable注解修饰的Controller
 		Object bean = pjp.getThis();
 		String identifier = this.getBeanName(bean);
 
@@ -124,6 +126,7 @@ public class CompensableMethodInterceptor
 		TransactionManager transactionManager = this.beanFactory.getTransactionManager();
 		CompensableManager compensableManager = this.beanFactory.getCompensableManager();
 
+		// 拿到@Compensable的interfaceClass属性, 是哪一个接口
 		Compensable annotation = method.getDeclaringClass().getAnnotation(Compensable.class);
 		Class<?> interfaceClass = annotation.interfaceClass();
 		String methodName = method.getName();
@@ -131,12 +134,15 @@ public class CompensableMethodInterceptor
 
 		Method interfaceMethod = null;
 		try {
+			// 看看当前的AOP拦截的方法是否在接口上有声明
 			interfaceMethod = interfaceClass.getMethod(methodName, parameterTypes);
 		} catch (NoSuchMethodException ex) {
 			logger.warn("Current compensable-service {} is invoking a non-TCC operation!", method);
+			// 没有就跳过, 不处理了
 			return point.proceed(); // ignore
 		}
 
+		// 拿到@Transactional注解, 如果方法级注解没有, 就去类上拿
 		Transactional clazzAnnotation = method.getDeclaringClass().getAnnotation(Transactional.class);
 		Transactional methodAnnotation = method.getAnnotation(Transactional.class);
 		Transactional transactional = methodAnnotation == null ? clazzAnnotation : methodAnnotation;
@@ -145,8 +151,10 @@ public class CompensableMethodInterceptor
 					String.format("Compensable-service(%s) does not have a Transactional annotation!", method));
 		}
 
+		// 构造一个CompensableInvocationImpl对象
 		CompensableInvocation invocation = null;
 		if (annotation.simplified()) {
+			// simplified模式, 在当前类下面就有confirm和cancel的逻辑, 不用再定义两个类来处理
 			invocation = this.getCompensableInvocation(identifier, method, args, annotation, point.getThis());
 		} else {
 			invocation = this.getCompensableInvocation(identifier, interfaceMethod, args, annotation);
@@ -182,9 +190,12 @@ public class CompensableMethodInterceptor
 				}
 			}
 
+			// 将CompensableInvocation压入当前线程的栈顶
 			registry.register(invocation);
+			// 执行方法内的业务逻辑
 			return point.proceed();
 		} finally {
+			// 将刚入压入栈顶的元素弹出
 			registry.unRegister();
 
 			if (compensable != null && invocation != null && invocation.isEnlisted()) {

@@ -89,6 +89,7 @@ public class UserCompensableImpl implements UserCompensable, Referenceable, Seri
 	}
 
 	public void begin() throws NotSupportedException, SystemException {
+		// 具体实现类是TransactionManagerImpl
 		this.transactionManager.begin();
 	}
 

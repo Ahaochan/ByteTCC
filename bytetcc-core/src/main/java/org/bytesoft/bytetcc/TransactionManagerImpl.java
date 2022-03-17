@@ -52,14 +52,17 @@ public class TransactionManagerImpl implements TransactionManager, CompensableBe
 			throw new SystemException("Current global transaction has already been marked rollback only!");
 		}
 
+		// 拿到CompensableMethodInterceptor里压到当前线程的栈顶的CompensableInvocation
 		CompensableInvocationRegistry registry = CompensableInvocationRegistry.getInstance();
 		CompensableInvocation invocation = registry.getCurrent();
 
 		if (transaction != null) {
 			compensableManager.begin();
 		} else if (invocation != null) {
+			// 第一次进来事务还没有开启, 就在这里开启TCC事务
 			compensableManager.compensableBegin();
 		} else {
+			// 如果啥都没有, 就开启普通事务
 			transactionManager.begin();
 		}
 	}
