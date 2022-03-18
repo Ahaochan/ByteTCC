@@ -43,11 +43,14 @@ public class CompensableLoadBalancerRuleImpl extends AbstractLoadBalancerRule im
 		SpringCloudBeanRegistry registry = SpringCloudBeanRegistry.getInstance();
 		CompensableLoadBalancerInterceptor interceptor = registry.getLoadBalancerInterceptor();
 
+		// 1. 初始化分布式事务的路由规则处理类, 没有就默认用CompensableRuleImpl
 		if (compensableRuleClass == null) {
+			// 从环境变量中读取分布式事务的路由处理类
 			Environment environment = registry.getEnvironment();
 			String clazzName = environment.getProperty(CONSTANT_RULE_KEY);
 			if (StringUtils.isNotBlank(clazzName)) {
 				try {
+					// 用当前线程的类加载器进行加载
 					ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 					compensableRuleClass = classLoader.loadClass(clazzName);
 				} catch (Exception ex) {
@@ -55,10 +58,12 @@ public class CompensableLoadBalancerRuleImpl extends AbstractLoadBalancerRule im
 					compensableRuleClass = CompensableRuleImpl.class;
 				}
 			} else {
+				// 没有就默认用CompensableRuleImpl
 				compensableRuleClass = CompensableRuleImpl.class;
 			}
 		}
 
+		// 2. new 一个CompensableRule对象出来, 并初始化
 		CompensableRule compensableRule = null;
 		if (CompensableRuleImpl.class.equals(compensableRuleClass)) {
 			compensableRule = new CompensableRuleImpl();
@@ -74,6 +79,7 @@ public class CompensableLoadBalancerRuleImpl extends AbstractLoadBalancerRule im
 		compensableRule.setLoadBalancer(this.getLoadBalancer());
 
 		if (interceptor == null) {
+			// 如果没有拦截器, 就随机取一个实例
 			return compensableRule.chooseServer(key); // return this.chooseServer(key);
 		} // end-if (interceptor == null)
 
@@ -82,13 +88,17 @@ public class CompensableLoadBalancerRuleImpl extends AbstractLoadBalancerRule im
 
 		Server server = null;
 		try {
+			// 拦截器过滤筛选可用的服务实例列表
 			List<Server> serverList = interceptor.beforeCompletion(servers);
 
+			// 从过滤完的服务实例列表里取出一个实例
 			server = compensableRule.chooseServer(key, serverList); // this.chooseServer(key, serverList);
 		} finally {
+			// 完事后做一个后置处理
 			interceptor.afterCompletion(server);
 		}
 
+		// 将选中的服务实例返回, 用来进行http通信
 		return server;
 	}
 

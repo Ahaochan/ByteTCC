@@ -31,6 +31,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
+// Feign拦截器
 public class CompensableFeignInterceptor
 		implements feign.RequestInterceptor, CompensableEndpointAware, ApplicationContextAware {
 	static final String HEADER_TRANCACTION_KEY = "X-BYTETCC-TRANSACTION"; // org.bytesoft.bytetcc.transaction
@@ -45,15 +46,18 @@ public class CompensableFeignInterceptor
 		CompensableManager compensableManager = beanFactory.getCompensableManager();
 		CompensableTransaction compensable = compensableManager.getCompensableTransactionQuietly();
 		if (compensable == null) {
+			// 如果没有开启分布式事务, 就直接返回, 不处理
 			return;
 		}
 
 		try {
+			// 将TCC分布式事务上下文序列化, 转为base64编码
 			TransactionContext transactionContext = compensable.getTransactionContext();
 			byte[] byteArray = SerializeUtils.serializeObject(transactionContext);
 
 			String transactionText = Base64.getEncoder().encodeToString(byteArray);
 
+			// 放到请求头里
 			Map<String, Collection<String>> headers = template.headers();
 			if (headers.containsKey(HEADER_TRANCACTION_KEY) == false) {
 				template.header(HEADER_TRANCACTION_KEY, transactionText);

@@ -52,17 +52,20 @@ public class CompensableFeignHandler implements InvocationHandler {
 		final CompensableTransactionImpl compensable = //
 				(CompensableTransactionImpl) compensableManager.getCompensableTransactionQuietly();
 		if (compensable == null) {
+			// 如果没有开启事务, 就直接执行Feign原生的http请求
 			return this.delegate.invoke(proxy, method, args);
 		}
 
 		final TransactionContext transactionContext = compensable.getTransactionContext();
 		if (transactionContext.isCompensable() == false) {
+			// 如果没有开启事务, 就直接执行Feign原生的http请求
 			return this.delegate.invoke(proxy, method, args);
 		}
 
 		final TransactionRequestImpl request = new TransactionRequestImpl();
 		final TransactionResponseImpl response = new TransactionResponseImpl();
 
+		// 处理负载均衡算法, 保证try、confirm、cancel在同一个机器实例上执行
 		beanRegistry.setLoadBalancerInterceptor(new CompensableLoadBalancerInterceptor(this.statefully) {
 			public void afterCompletion(Server server) {
 				beanRegistry.removeLoadBalancerInterceptor();
@@ -89,6 +92,7 @@ public class CompensableFeignHandler implements InvocationHandler {
 		response.setTransactionContext(transactionContext);
 
 		try {
+			// 执行Feign原生的http请求
 			return this.delegate.invoke(proxy, method, args);
 		} catch (Throwable error) {
 			Throwable cause = error.getCause();
