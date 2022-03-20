@@ -46,6 +46,7 @@ import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
+// Spring拦截器, 拦截http请求
 public class CompensableHandlerInterceptor implements HandlerInterceptor, CompensableEndpointAware, ApplicationContextAware {
 	static final Logger logger = LoggerFactory.getLogger(CompensableHandlerInterceptor.class);
 
@@ -59,6 +60,8 @@ public class CompensableHandlerInterceptor implements HandlerInterceptor, Compen
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
 		String transactionStr = request.getHeader(HEADER_TRANCACTION_KEY);
 		if (StringUtils.isBlank(transactionStr)) {
+			// 如果上游服务调用带有X-BYTETCC-TRANSACTION请求头, 就走下面的逻辑
+			// 比如Feign调用, 上游服务会在CompensableFeignInterceptor中, 塞入请求头
 			return true;
 		}
 
@@ -96,6 +99,8 @@ public class CompensableHandlerInterceptor implements HandlerInterceptor, Compen
 		CompensableBeanFactory beanFactory = beanRegistry.getBeanFactory();
 		TransactionInterceptor transactionInterceptor = beanFactory.getTransactionInterceptor();
 
+		// 从请求头中反序列化分布式事务, 转成一个TransactionContext对象
+		// 这个上游服务进行Feign调用时, 在CompensableFeignInterceptor将分布式事务TransactionContext对象进行序列化的
 		byte[] byteArray = transactionText == null ? new byte[0] : Base64.getDecoder().decode(transactionText);
 
 		TransactionContext transactionContext = null;
@@ -109,12 +114,14 @@ public class CompensableHandlerInterceptor implements HandlerInterceptor, Compen
 		req.setTransactionContext(transactionContext);
 		req.setTargetTransactionCoordinator(beanRegistry.getConsumeCoordinator(propagationText));
 
+		// 创建了一个分布式事务对象CompensableTransactionImpl, 存储到仓储Repository中
 		transactionInterceptor.afterReceiveRequest(req);
 
 		CompensableManager compensableManager = beanFactory.getCompensableManager();
 		CompensableTransaction compensable = compensableManager.getCompensableTransactionQuietly();
 		String propagatedBy = (String) compensable.getTransactionContext().getPropagatedBy();
 
+		// 封装响应头, 将分布式事务上下文序列化为base64, 加入响应头里
 		byte[] responseByteArray = SerializeUtils.serializeObject(compensable.getTransactionContext());
 		String compensableStr = Base64.getEncoder().encodeToString(responseByteArray);
 		response.setHeader(HEADER_TRANCACTION_KEY, compensableStr);

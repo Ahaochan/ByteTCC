@@ -28,6 +28,7 @@ public class CompensableInterceptorImpl implements TransactionInterceptor, Compe
 	@javax.inject.Inject
 	private CompensableBeanFactory beanFactory;
 
+	// org.bytesoft.bytetcc.supports.rpc.CompensableInterceptorImpl
 	private TransactionInterceptor compensableInterceptor;
 
 	public void beforeSendRequest(TransactionRequest request) throws IllegalStateException {

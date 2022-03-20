@@ -96,6 +96,7 @@ public class CompensableInterceptorImpl implements TransactionInterceptor, Compe
 		TransactionContext transactionContext = srcTransactionContext.clone();
 		transactionContext.setPropagatedBy(srcTransactionContext.getPropagatedBy());
 		try {
+			// org.bytesoft.bytetcc.CompensableCoordinator
 			compensableCoordinator.start(transactionContext, XAResource.TMNOFLAGS);
 		} catch (XAException ex) {
 			logger.error("CompensableInterceptorImpl.afterReceiveRequest({})", request, ex);

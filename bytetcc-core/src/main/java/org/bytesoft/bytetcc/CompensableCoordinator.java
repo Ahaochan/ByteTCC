@@ -82,20 +82,25 @@ public class CompensableCoordinator implements RemoteCoordinator, CompensableBea
 			throw new XAException(XAException.XAER_PROTO);
 		}
 
+		// 从请求头反序列化得到的分布式事务上下文, 拿到globalXid
 		TransactionXid globalXid = transactionContext.getXid();
 		Transaction transaction = null;
 		try {
+			// 这里如果没有走mongodb持久化, 是拿不到Transaction对象的
 			transaction = compensableRepository.getTransaction(globalXid);
 		} catch (TransactionException tex) {
 			throw new XAException(XAException.XAER_RMERR);
 		}
 
 		if (transaction == null) {
+			// 拿不到Transaction对象, 就默认初始化一个CompensableTransactionImpl
 			transaction = new CompensableTransactionImpl((org.bytesoft.compensable.TransactionContext) transactionContext);
 			((CompensableTransactionImpl) transaction).setBeanFactory(this.beanFactory);
 
 			compensableLogger.createTransaction(((CompensableTransactionImpl) transaction).getTransactionArchive());
+			// 存储到仓储Repository中
 			compensableRepository.putTransaction(globalXid, transaction);
+			// 分布式事务开启, 打印一行日志
 			logger.info("{}| compensable transaction begin!", ByteUtils.byteArrayToString(globalXid.getGlobalTransactionId()));
 		} else if (transaction.getTransactionStatus() != Status.STATUS_ACTIVE) {
 			throw new XAException(XAException.XAER_PROTO);
