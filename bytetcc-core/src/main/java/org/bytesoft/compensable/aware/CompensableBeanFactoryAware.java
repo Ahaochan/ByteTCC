@@ -17,6 +17,7 @@ package org.bytesoft.compensable.aware;
 
 import org.bytesoft.compensable.CompensableBeanFactory;
 
+// 实现了这个接口的Bean, 会在CompensableBeanFactoryAutoInjector中被回调注入CompensableBeanFactory
 public interface CompensableBeanFactoryAware {
 	public static final String BEAN_FACTORY_FIELD_NAME = "beanFactory";
 

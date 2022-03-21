@@ -45,6 +45,7 @@ import org.bytesoft.transaction.xa.XidFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+// 被org.springframework.transaction.jta.JtaTransactionManager回调, 用来开启、提交、回滚事务
 public class UserCompensableImpl implements UserCompensable, Referenceable, Serializable, CompensableBeanFactoryAware {
 	private static final long serialVersionUID = 1L;
 	static final Logger logger = LoggerFactory.getLogger(UserCompensableImpl.class);
@@ -249,6 +250,7 @@ public class UserCompensableImpl implements UserCompensable, Referenceable, Seri
 	}
 
 	public void rollback() throws IllegalStateException, SecurityException, SystemException {
+		// 具体实现类是TransactionManagerImpl
 		this.transactionManager.rollback();
 	}
 

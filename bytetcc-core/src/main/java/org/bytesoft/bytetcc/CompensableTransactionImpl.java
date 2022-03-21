@@ -593,6 +593,8 @@ public class CompensableTransactionImpl extends TransactionListenerAdapter
 		boolean unFinishExists = false;
 		boolean errorExists = false;
 
+		// 这个resourceList是ByteTCC按照调用顺序存放的各个服务的信息
+		// 如果5个服务, 前2个成功, 第3个失败, 这里就会有3个服务信息, 回滚try成功的服务执行cancel即可
 		for (int i = 0; i < this.resourceList.size(); i++) {
 			XAResourceArchive current = this.resourceList.get(i);
 			if (current.isCommitted()) {
@@ -610,6 +612,7 @@ public class CompensableTransactionImpl extends TransactionListenerAdapter
 			TransactionXid branchXid = (TransactionXid) current.getXid();
 			TransactionXid globalXid = xidFactory.createGlobalXid(branchXid.getGlobalTransactionId());
 			try {
+				// 回滚事务
 				current.rollback(globalXid);
 				rolledbackExists = true;
 

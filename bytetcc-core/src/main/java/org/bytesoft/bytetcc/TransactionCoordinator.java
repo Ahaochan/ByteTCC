@@ -68,6 +68,7 @@ public class TransactionCoordinator implements RemoteCoordinator, CompensableBea
 
 		int formatId = xid.getFormatId();
 		if (XidFactory.JTA_FORMAT_ID == formatId) {
+			// 实现类是org.bytesoft.bytejta.TransactionCoordinator
 			transactionCoordinator.rollback(xid);
 		} else if (XidFactory.TCC_FORMAT_ID == formatId) {
 			compensableCoordinator.rollback(xid);

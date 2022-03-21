@@ -15,6 +15,7 @@
  */
 package org.bytesoft.compensable.aware;
 
+// 实现了这个接口的Bean, 会在CompensableEndpointAutoInjector中被回调注入
 public interface CompensableEndpointAware {
 	public static final String ENDPOINT_FIELD_NAME = "endpoint";
 

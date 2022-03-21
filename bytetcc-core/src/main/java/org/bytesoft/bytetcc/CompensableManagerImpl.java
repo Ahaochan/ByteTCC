@@ -473,6 +473,7 @@ public class CompensableManagerImpl implements CompensableManager, CompensableBe
 		TransactionXid transactionXid = transactionContext.getXid();
 		try {
 			transactionCoordinator.end(transactionContext, XAResource.TMSUCCESS);
+			// 实现类是TransactionCoordinator
 			transactionCoordinator.rollback(transactionXid);
 		} catch (XAException xaEx) {
 			transactionCoordinator.forgetQuietly(transactionXid);

@@ -113,6 +113,7 @@ public class TransactionManagerImpl implements TransactionManager, CompensableBe
 
 	}
 
+	// org.springframework.transaction.interceptor.TransactionAspectSupport触发调用事务回滚
 	public void rollback() throws IllegalStateException, SecurityException, SystemException {
 		TransactionManager transactionManager = this.beanFactory.getTransactionManager();
 		CompensableManager compensableManager = this.beanFactory.getCompensableManager();
@@ -150,6 +151,7 @@ public class TransactionManagerImpl implements TransactionManager, CompensableBe
 					compensableManager.compensableRollback();
 				}
 			} else {
+				// 具体实现类是CompensableManagerImpl
 				compensableManager.rollback();
 			}
 		} else {
