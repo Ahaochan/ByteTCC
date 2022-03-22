@@ -427,6 +427,7 @@ public class CompensableTransactionImpl extends TransactionListenerAdapter
 		this.recoverIfNecessary();
 
 		if (this.transactionStatus != Status.STATUS_ROLLEDBACK) {
+			// 回滚事务
 			this.fireRollback(); // TODO
 		}
 
@@ -488,6 +489,7 @@ public class CompensableTransactionImpl extends TransactionListenerAdapter
 
 		SystemException systemEx = null;
 		try {
+			// 回滚事务, cancel底层逻辑
 			this.fireNativeParticipantCancel();
 		} catch (SystemException ex) {
 			systemEx = ex;
@@ -563,6 +565,7 @@ public class CompensableTransactionImpl extends TransactionListenerAdapter
 							ByteUtils.byteArrayToString(this.transactionContext.getXid().getGlobalTransactionId()),
 							ByteUtils.byteArrayToString(current.getIdentifier().getGlobalTransactionId()));
 				} else if (StringUtils.isNotBlank(invocation.getCancellableKey())) {
+					// 执行根据@Compensable注解标记的CancellableKey指定的cancel bean的业务逻辑
 					container.cancel(invocation);
 				} else {
 					current.setCancelled(true);

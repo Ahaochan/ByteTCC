@@ -125,7 +125,9 @@ public class SpringContainerContextImpl implements ContainerContext, Application
 			Object instance = this.applicationContext.getBean(identifier);
 			this.cancelSimplified(method, instance, args);
 		} else {
+			// 根据@Compensable注解标记的CancellableKey指定的cancel bean
 			Object instance = this.applicationContext.getBean(cancellableKey);
+			// 反射执行bean里的cancel业务逻辑
 			this.cancelComplicated(method, instance, args);
 		}
 	}

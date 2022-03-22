@@ -368,6 +368,7 @@ public class CompensableCoordinator implements RemoteCoordinator, CompensableBea
 				throw new XAException(XAException.XAER_RMERR);
 			}
 
+			// 回滚事务
 			transaction = this.invokeRollback(globalXid);
 			success = true;
 		} catch (RuntimeException ex) {
@@ -408,6 +409,7 @@ public class CompensableCoordinator implements RemoteCoordinator, CompensableBea
 			// ((CompensableTransactionImpl) transaction).lock(false); // markCurrentBranchTransactionRollbackIfNecessary
 			compensableManager.associateThread(transaction);
 
+			// 回滚事务
 			transaction.participantRollback();
 			// success = true;
 		} catch (IllegalStateException ex) {
