@@ -159,6 +159,7 @@ public class CompensableTransactionImpl extends TransactionListenerAdapter
 
 		SystemException systemEx = null;
 		try {
+			// 对本地事务进行confirm
 			this.fireNativeParticipantConfirm();
 		} catch (SystemException ex) {
 			systemEx = ex;
@@ -174,6 +175,7 @@ public class CompensableTransactionImpl extends TransactionListenerAdapter
 		}
 
 		try {
+			// 对远程服务的事务进行confirm
 			this.fireRemoteParticipantConfirm();
 		} catch (HeuristicMixedException ex) {
 			logger.info("{}| confirm remote branchs failed!",

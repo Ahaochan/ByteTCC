@@ -38,10 +38,10 @@ public class CompensableWork implements Work, CompensableBeanFactoryAware {
 	private CompensableBeanFactory beanFactory;
 
 	private void initializeIfNecessary() {
+		// 实现类是org.bytesoft.bytetcc.TransactionRecoveryImpl
 		TransactionRecovery compensableRecovery = this.beanFactory.getCompensableRecovery();
 		if (this.initialized == false) {
 			try {
-				// 恢复事务
 				compensableRecovery.startRecovery();
 				this.initialized = true;
 				compensableRecovery.timingRecover();
@@ -61,6 +61,7 @@ public class CompensableWork implements Work, CompensableBeanFactoryAware {
 			this.initializeIfNecessary();
 
 			long current = System.currentTimeMillis();
+			// 每60秒执行一次
 			if (current >= nextRecoveryTime) {
 				nextRecoveryTime = current + this.recoveryInterval;
 
@@ -68,11 +69,13 @@ public class CompensableWork implements Work, CompensableBeanFactoryAware {
 				this.fireBranchRecovery();
 			}
 
+			// 每100毫秒执行一次循环
 			this.waitForMillis(100L);
 		} // end-while (this.currentActive())
 	}
 
 	private void fireGlobalRecovery() {
+		// 实现类是org.bytesoft.bytetcc.TransactionRecoveryImpl
 		TransactionRecovery compensableRecovery = this.beanFactory.getCompensableRecovery();
 		try {
 			compensableRecovery.timingRecover();
@@ -84,6 +87,7 @@ public class CompensableWork implements Work, CompensableBeanFactoryAware {
 	}
 
 	private void fireBranchRecovery() {
+		// 实现类是org.bytesoft.bytetcc.TransactionRecoveryImpl
 		TransactionRecovery compensableRecovery = this.beanFactory.getCompensableRecovery();
 		try {
 			compensableRecovery.branchRecover();

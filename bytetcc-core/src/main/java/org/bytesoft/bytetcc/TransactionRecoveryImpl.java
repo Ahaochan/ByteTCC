@@ -303,6 +303,7 @@ public class TransactionRecoveryImpl
 
 	public synchronized void timingRecover() {
 		TransactionRepository transactionRepository = beanFactory.getCompensableRepository();
+		// 获取所有异常的事务
 		List<Transaction> transactions = transactionRepository.getErrorTransactionList();
 		int total = transactions == null ? 0 : transactions.size(), value = 0;
 		for (int i = 0; transactions != null && i < transactions.size(); i++) {
@@ -310,6 +311,7 @@ public class TransactionRecoveryImpl
 			org.bytesoft.transaction.TransactionContext transactionContext = transaction.getTransactionContext();
 			TransactionXid xid = transactionContext.getXid();
 			try {
+				// 对每个事务进行恢复
 				this.recoverTransactionIfNecessary(transaction);
 			} catch (CommitRequiredException ex) {
 				logger.debug("{}| recover: branch={}, message= commit-required",
@@ -352,6 +354,7 @@ public class TransactionRecoveryImpl
 
 		if (transactionContext.isCoordinator()) {
 			transaction.recover();
+			// 对事务进行恢复
 			this.recoverCoordinator(transaction);
 		} else {
 			transaction.recover();
@@ -373,6 +376,7 @@ public class TransactionRecoveryImpl
 		try {
 			compensableManager.associateThread(transaction);
 
+			// 根据事务不同的状态, 做不同的处理
 			switch (transaction.getTransactionStatus()) {
 			case Status.STATUS_ACTIVE:
 			case Status.STATUS_MARKED_ROLLBACK:
