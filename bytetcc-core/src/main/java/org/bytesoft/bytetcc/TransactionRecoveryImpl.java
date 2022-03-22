@@ -95,6 +95,7 @@ public class TransactionRecoveryImpl
 
 	protected void fireTransactionStartRecovery() {
 		TransactionRecovery transactionRecovery = this.beanFactory.getTransactionRecovery();
+		// 这里的实现类是org.bytesoft.bytejta.TransactionRecoveryImpl
 		transactionRecovery.startRecovery();
 	}
 

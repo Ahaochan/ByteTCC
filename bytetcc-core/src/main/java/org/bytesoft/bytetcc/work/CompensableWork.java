@@ -44,6 +44,7 @@ public class CompensableWork implements Work, CompensableBeanFactoryAware {
 			try {
 				compensableRecovery.startRecovery();
 				this.initialized = true;
+				// 恢复事务
 				compensableRecovery.timingRecover();
 			} catch (SecurityException rex) {
 				logger.debug("Only the master node can perform the initialization operation!");
@@ -54,6 +55,7 @@ public class CompensableWork implements Work, CompensableBeanFactoryAware {
 	}
 
 	public void run() {
+		// 启动就恢复一次事务
 		this.initializeIfNecessary();
 
 		long nextRecoveryTime = 0;
@@ -78,6 +80,7 @@ public class CompensableWork implements Work, CompensableBeanFactoryAware {
 		// 实现类是org.bytesoft.bytetcc.TransactionRecoveryImpl
 		TransactionRecovery compensableRecovery = this.beanFactory.getCompensableRecovery();
 		try {
+			// 恢复事务
 			compensableRecovery.timingRecover();
 		} catch (SecurityException rex) {
 			logger.debug("Only the master node can perform the global recovery operation!");
