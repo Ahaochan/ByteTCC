@@ -105,6 +105,7 @@ public class TransactionManagerImpl implements TransactionManager, CompensableBe
 					compensableManager.compensableCommit();
 				}
 			} else {
+				// 具体实现类是CompensableManagerImpl
 				compensableManager.commit();
 			}
 		} else {

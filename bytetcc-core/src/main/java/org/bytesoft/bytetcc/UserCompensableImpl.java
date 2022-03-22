@@ -96,6 +96,7 @@ public class UserCompensableImpl implements UserCompensable, Referenceable, Seri
 
 	public void commit() throws HeuristicMixedException, HeuristicRollbackException, IllegalStateException, RollbackException,
 			SecurityException, SystemException {
+		// 具体实现类是TransactionManagerImpl
 		this.transactionManager.commit();
 	}
 

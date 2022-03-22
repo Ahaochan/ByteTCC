@@ -260,6 +260,7 @@ public class CompensableTransactionImpl extends TransactionListenerAdapter
 							ByteUtils.byteArrayToString(this.transactionContext.getXid().getGlobalTransactionId()),
 							ByteUtils.byteArrayToString(current.getIdentifier().getGlobalTransactionId()));
 				} else if (StringUtils.isNotBlank(invocation.getConfirmableKey())) {
+					// 执行根据@Compensable注解标记的ConfirmableKey指定的confirm bean的业务逻辑
 					container.confirm(invocation);
 				} else {
 					current.setConfirmed(true);
@@ -291,6 +292,8 @@ public class CompensableTransactionImpl extends TransactionListenerAdapter
 		boolean unFinishExists = false;
 		boolean errorExists = false;
 
+		// 这个resourceList是ByteTCC按照调用顺序存放的各个服务的信息
+		// 如果5个服务要confirm, 这里就会有5个服务信息
 		for (int i = 0; i < this.resourceList.size(); i++) {
 			XAResourceArchive current = this.resourceList.get(i);
 			if (current.isCommitted()) {

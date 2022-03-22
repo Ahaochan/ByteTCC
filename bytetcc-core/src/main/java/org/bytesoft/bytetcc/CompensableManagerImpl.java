@@ -350,8 +350,10 @@ public class CompensableManagerImpl implements CompensableManager, CompensableBe
 		boolean isLocalTransaction = transaction.isLocalTransaction();
 		try {
 			if (isLocalTransaction) {
+				// 提交本地事务
 				this.invokeTransactionCommitIfLocalTransaction(compensable);
 			} else {
+				// 提交远程事务
 				this.invokeTransactionCommitIfNotLocalTransaction(compensable);
 			}
 		} finally {
