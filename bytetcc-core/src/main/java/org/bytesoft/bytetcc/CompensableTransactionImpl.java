@@ -176,6 +176,7 @@ public class CompensableTransactionImpl extends TransactionListenerAdapter
 
 		try {
 			// 对远程服务的事务进行confirm
+			// 如果本身也是被上游服务调用的confirm, 就会在这里调用下游服务的confirm
 			this.fireRemoteParticipantConfirm();
 		} catch (HeuristicMixedException ex) {
 			logger.info("{}| confirm remote branchs failed!",
