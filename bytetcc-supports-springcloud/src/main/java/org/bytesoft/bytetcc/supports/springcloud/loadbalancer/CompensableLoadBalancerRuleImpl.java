@@ -31,6 +31,7 @@ import com.netflix.loadbalancer.ILoadBalancer;
 import com.netflix.loadbalancer.IRule;
 import com.netflix.loadbalancer.Server;
 
+// ByteTcc重写了Ribbon的路由规则
 public class CompensableLoadBalancerRuleImpl extends AbstractLoadBalancerRule implements IRule {
 	static final String CONSTANT_RULE_KEY = "org.bytesoft.bytetcc.NFCompensableRuleClassName";
 	static Logger logger = LoggerFactory.getLogger(CompensableLoadBalancerRuleImpl.class);
@@ -95,6 +96,7 @@ public class CompensableLoadBalancerRuleImpl extends AbstractLoadBalancerRule im
 			server = compensableRule.chooseServer(key, serverList); // this.chooseServer(key, serverList);
 		} finally {
 			// 完事后做一个后置处理
+			// 这里抛出异常, 可能会导致LoadBalancerContext报错Load balancer does not have available server for client
 			interceptor.afterCompletion(server);
 		}
 

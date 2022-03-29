@@ -71,6 +71,7 @@ public class CompensableInterceptorImpl implements TransactionInterceptor, Compe
 			descriptor.setDelegate(resource);
 			descriptor.setIdentifier(resource.getIdentifier());
 
+			// 将调用的服务加入resourceList
 			boolean participantEnlisted = transaction.enlistResource(descriptor);
 			((TransactionRequestImpl) request).setParticipantEnlistFlag(participantEnlisted);
 		} catch (IllegalStateException ex) {

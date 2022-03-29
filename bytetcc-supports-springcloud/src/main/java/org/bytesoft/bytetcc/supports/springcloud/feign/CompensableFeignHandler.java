@@ -84,6 +84,7 @@ public class CompensableFeignHandler implements InvocationHandler {
 				RemoteCoordinator coordinator = beanRegistry.getConsumeCoordinator(instanceId);
 				request.setTargetTransactionCoordinator(coordinator);
 
+				// 在发送请求前, 做一些处理
 				transactionInterceptor.beforeSendRequest(request);
 			}
 		});

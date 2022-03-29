@@ -703,6 +703,7 @@ public class CompensableTransactionImpl extends TransactionListenerAdapter
 	}
 
 	public boolean enlistResource(XAResource xaRes) throws RollbackException, IllegalStateException, SystemException {
+		// 这里抛出异常, 可能会导致LoadBalancerContext报错Load balancer does not have available server for client
 		if (this.transactionStatus == Status.STATUS_MARKED_ROLLBACK) {
 			throw new RollbackException();
 		} else if (this.transactionStatus != Status.STATUS_ACTIVE) {
@@ -737,6 +738,7 @@ public class CompensableTransactionImpl extends TransactionListenerAdapter
 			resourceArchive = new XAResourceArchive();
 			resourceArchive.setXid(branchXid);
 			resourceArchive.setDescriptor(descriptor);
+			// 这里将调用的服务加入resourceList, 后面confirm或者cancel中使用
 			this.resourceList.add(resourceArchive);
 			this.resourceMap.put(remoteSvc, resourceArchive);
 
